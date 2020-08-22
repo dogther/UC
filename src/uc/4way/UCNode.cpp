@@ -318,7 +318,13 @@ std::string UCNode::getNodeProgramming(DAG_Gamma2 *dag) {
     if (controlBits.size() == 1) {
       return std::to_string(this->controlBits[0]);
     }
-    return std::to_string(controlBits[3] * 8 + controlBits[2] * 4 + controlBits[1] * 2 + controlBits[0]);
+	int tmp[4];
+	for(int i=0; i<4; i++)
+		if(controlBits[i] > 32767) //negative number
+			tmp[i] = (int)controlBits[i] - 65536;
+		else tmp[i] = controlBits[i];
+	return std::to_string(tmp[0])+" "+std::to_string(tmp[1])+" "+std::to_string(tmp[2])+" "+std::to_string(tmp[3]);
+    //return std::to_string(controlBits[3] * 8 + controlBits[2] * 4 + controlBits[1] * 2 + controlBits[0]);
   }
   DAG_Gamma1 *left = dag->gamma1_left;
   DAG_Gamma1 *right = dag->gamma1_right;

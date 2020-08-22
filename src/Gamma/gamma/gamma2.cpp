@@ -227,6 +227,10 @@ void DAG_Gamma2::add_edges(DAG_Gamma1 *gamma1_graph, bool preprocessing, bool fo
  */
 void DAG_Gamma2::create_subgraphs(uint32_t previous_node_num, bool preprocessing, bool four_way, bool hybrid, std::vector<uint64_t>& hybrid_choice) {
   // Split the Gamma2 graph into two Gamma1s
+#ifdef STATE
+  cout<<"Entering create_graph"<<endl;
+  //cout<<"num:"<<previous_node_num<<endl;
+#endif
   pair<DAG_Gamma1 *, DAG_Gamma1 *> p = create_from_Gamma2(this, previous_node_num);
   this->gamma1_right = p.first;
   this->gamma1_left = p.second;
@@ -247,7 +251,9 @@ void DAG_Gamma2::create_subgraphs(uint32_t previous_node_num, bool preprocessing
     this->sub_right = 0;
     return;
   }
-
+#ifdef STATE
+  cout<<"Start processing"<<endl;
+#endif
   // Because of parity it can vary between node_number/2 or node_number/2 - 1, here it is set to be correct
   uint32_t left_num = this->gamma1_left->node_number;
   uint32_t right_num = this->gamma1_right->node_number;
@@ -301,7 +307,9 @@ void DAG_Gamma2::create_subgraphs(uint32_t previous_node_num, bool preprocessing
       }
     }
   }
-
+#ifdef STATE
+  cout<<"Ready for left recurrsion"<<endl;
+#endif
   if ((left_num > 4 && (preprocessingLeft || !four_way || !hybrid)) || (!preprocessingLeft && four_way)) {
     this->sub_left = new DAG_Gamma2(left_node_num);
     this->sub_left->add_edges(this->gamma1_left, preprocessingLeft, fourWayLeft);
@@ -309,7 +317,9 @@ void DAG_Gamma2::create_subgraphs(uint32_t previous_node_num, bool preprocessing
   } else {
     this->sub_left = 0;
   }
-
+#ifdef STATE
+  cout<<"Ready for right recurrsion"<<endl;
+#endif
   if ((right_num > 4 && (preprocessingRight || !four_way || !hybrid)) || (!preprocessingRight && four_way)) {
     this->sub_right = new DAG_Gamma2(right_node_num);
     this->sub_right->add_edges(this->gamma1_right, preprocessingRight, fourWayRight);
@@ -528,7 +538,9 @@ pair<DAG_Gamma1 *, DAG_Gamma1 *> create_from_Gamma2(DAG_Gamma2 *g, uint32_t prev
   // Creating the Gamma2 graphs building up the "bipartite" graph
   DAG_Gamma2 *tmp1 = new DAG_Gamma2(g->node_number);
   DAG_Gamma2 *tmp2 = new DAG_Gamma2(g->node_number);
-
+#ifdef STATE
+  cout<<"Entering create_Gamma2 with prev num"<<previous_node_num<<endl;
+#endif
   uint32_t edge_num = 0;
   DAG_Gamma2::Node *current;
   for (uint32_t i = 0; i < g->node_number; ++i) {
@@ -537,7 +549,9 @@ pair<DAG_Gamma1 *, DAG_Gamma1 *> create_from_Gamma2(DAG_Gamma2 *g, uint32_t prev
     current->left->prepare_bipartite(tmp1, tmp2, i, edge_num);
     current->right->prepare_bipartite(tmp1, tmp2, i, edge_num);
   }
-
+#ifdef STATE
+  cout<<"prepare bipart ended"<<endl;
+#endif
   DAG_Gamma1 *g1 = new DAG_Gamma1(g->node_number);
   DAG_Gamma1 *g2 = new DAG_Gamma1(g->node_number);
 

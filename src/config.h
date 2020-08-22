@@ -21,7 +21,7 @@
 
 #define TIME // measure time for building UC
 #define STATE // prints out the current state
-//#define CIRCUIT_DEBUG // prints out debug information of the circuit
+#define CIRCUIT_DEBUG // prints out debug information of the circuit
 #define DEBUG_GRAPH //HAS TO BE UNDEFINED WHEN MEASURING PERFORMANCE!!! Prints out the graphvizz graphs
 #define DEBUG_CORRECTNESS // run some corrctness checks
 

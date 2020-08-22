@@ -184,32 +184,56 @@ void set_fanout(string filename2, vector<uint32_t>& fanout, uint32_t& output_num
                     index++;
                     fanout[atoi(tokens[0].c_str())]++;
                     arity = atoi(tokens[index + 3].c_str());
-                    if(arity == 2){
-                        index += 2;
-                    }
-                    input1 = atoi(tokens[index + 11].c_str());
-                    fanout[input1]++;
-                    if(arity == 2){
-                        input2 = atoi(tokens[index + 12].c_str());
-                        fanout[input2]++;
-                    }
-                }
-                else if(tokens[index + 1] == "gate"){
-                    arity = atoi(tokens[index + 3].c_str());
-                    if(arity == 2){
-                        index += 2;
-                    }
-                    input1 = atoi(tokens[index + 11].c_str());
-                    fanout[input1]++;
-                    if(arity == 2){
-                        input2 = atoi(tokens[index + 12].c_str());
-                        fanout[input2]++;
-                    }
-                }
-            }
-        }
-        file2.close();
-    }
+					if(tokens[index+4]=="operator")
+					{
+						if(tokens[index+5]=="L")
+							index+=4;
+						input1 = atoi(tokens[index+8].c_str());
+						fanout[input1]++;
+						input2 = atoi(tokens[index+9].c_str());
+						fanout[input2]++;
+					}
+					else
+					{
+						if(arity == 2){
+							index += 2;
+						}
+						input1 = atoi(tokens[index + 11].c_str());
+						fanout[input1]++;
+						if(arity == 2){
+							input2 = atoi(tokens[index + 12].c_str());
+							fanout[input2]++;
+						}
+					}
+				}
+				else if(tokens[index + 1] == "gate"){
+					arity = atoi(tokens[index + 3].c_str());
+					if(tokens[index+4]=="operator")
+					{
+						if(tokens[index+5]=="L")
+							index+=4;
+						input1 = atoi(tokens[index+8].c_str());
+						fanout[input1]++;
+						input2 = atoi(tokens[index+9].c_str());
+						fanout[input2]++;
+					}
+					else
+					{
+						if(arity == 2){
+							index += 2;
+						}
+						input1 = atoi(tokens[index + 11].c_str());
+						fanout[input1]++;
+						if(arity == 2){
+							input2 = atoi(tokens[index + 12].c_str());
+							fanout[input2]++;
+						}
+					}
+				}
+			}
+		}
+		file2.close();
+	}
 }
 
 /**
@@ -219,20 +243,20 @@ void set_fanout(string filename2, vector<uint32_t>& fanout, uint32_t& output_num
  * @param inputs number of inputs
  */
 void set_shift(vector<uint32_t>& shift, vector<uint32_t>& fanout, uint32_t inputs){
-   uint32_t shift_global = 0;
-   uint32_t tmp;
-   for(uint32_t i = 0; i < fanout.size(); ++i){
-        tmp = fanout[i];
-        if(tmp > 2){
-            shift_global += tmp - 2;
-        }
-        if( i + 1  < fanout.size() ){
-            shift[i + 1] += shift_global;
-        }
-   }
-   for(uint32_t i = 0; i < inputs; ++i){
-        shift[i] = 0;
-   }
+	uint32_t shift_global = 0;
+	uint32_t tmp;
+	for(uint32_t i = 0; i < fanout.size(); ++i){
+		tmp = fanout[i];
+		if(tmp > 2){
+			shift_global += tmp - 2;
+		}
+		if( i + 1  < fanout.size() ){
+			shift[i + 1] += shift_global;
+		}
+	}
+	for(uint32_t i = 0; i < inputs; ++i){
+		shift[i] = 0;
+	}
 }
 
 /**
@@ -244,48 +268,49 @@ void set_shift(vector<uint32_t>& shift, vector<uint32_t>& fanout, uint32_t input
  * @param collection list of all nodes
  */
 void identify_problem_inputs(string filename2, vector<uint32_t>& fanout, uint32_t& inputs, uint32_t gate_num,
-                             list<Node*> &collection){
-    string line;
-    vector<string> tokens;
+		list<Node*> &collection){
+	string line;
+	vector<string> tokens;
 
-    uint32_t num;
+	uint32_t num;
 
-    vector<uint32_t> problem_inputs;
-    problem_inputs.reserve(gate_num);
+	vector<uint32_t> problem_inputs;
+	problem_inputs.reserve(gate_num);
 
-    ofstream tofile;
-    string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
-    tofile.open(out_file_name.c_str());
+	ofstream tofile;
+	string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
+	tofile.open(out_file_name.c_str());
 
-    ifstream file;
-    file.open(filename2.c_str());
-    while (getline(file, line)) {
-        if (line != "") {
-            tokenize2(line, tokens);
-            if(tokens[1] == "input"){
-                num = atoi(tokens[0].c_str());
-                tofile << num << " input" << endl;
-                if(fanout[num] > 2){
-                    problem_inputs.push_back(num);
-                }
-            }
-        }
-    }
-   file.close();
+	ifstream file;
+	file.open(filename2.c_str());
+	while (getline(file, line)) {
+		if (line != "") {
+			tokenize2(line, tokens);
+			if(tokens[1] == "input"){
+				num = atoi(tokens[0].c_str());
+				tofile << num << " input" << endl;
+				if(fanout[num] > 2){
+					problem_inputs.push_back(num);
+				}
+			}
+		}
+	}
+	file.close();
 
-   uint32_t tmp;
-   uint32_t counting = 0;
-   uint32_t temp_node;
-   for(uint32_t j = 0; j < problem_inputs.size(); ++j){
-       tmp = problem_inputs[j];
-       temp_node = problem_inputs[j];
-       collection.push_back(new Node(temp_node, fanout[temp_node], tmp, inputs + counting - temp_node - 1));
-       for(uint32_t i = 0; i < fanout[temp_node] - 2; ++i){
-           counting++;
-           tofile << inputs + counting  - 1 << " gate arity 1 table [ 0 1 ] inputs [ " << getnode(collection, temp_node, inputs + counting - temp_node - 1)->number << " ]" << endl;
-       }
-   }
-   problem_inputs.clear();
+	uint32_t tmp;
+	uint32_t counting = 0;
+	uint32_t temp_node;
+	for(uint32_t j = 0; j < problem_inputs.size(); ++j){
+		tmp = problem_inputs[j];
+		temp_node = problem_inputs[j];
+		collection.push_back(new Node(temp_node, fanout[temp_node], tmp, inputs + counting - temp_node - 1));
+		for(uint32_t i = 0; i < fanout[temp_node] - 2; ++i){
+			counting++;
+			tofile << inputs + counting  - 1 << " gate arity 1 operator = inputs [ " << getnode(collection, temp_node, inputs + counting - temp_node - 1)->number << " ]" << endl;
+			//tofile << inputs + counting  - 1 << " gate arity 1 table [ 0 1 ] inputs [ " << getnode(collection, temp_node, inputs + counting - temp_node - 1)->number << " ]" << endl;
+		}
+	}
+	problem_inputs.clear();
 }
 
 /**
@@ -299,123 +324,145 @@ void identify_problem_inputs(string filename2, vector<uint32_t>& fanout, uint32_
  * @param collection list of nodes
  */
 void all_nodes(string filename2, uint32_t gate_num, vector<uint32_t> fanout, vector<uint32_t> shift, uint32_t inputs,
-               uint32_t output_num, list<Node*> &collection){
-   ifstream file3;
-   file3.open(filename2.c_str());
-   bool outputs_written = false;
-   vector<uint32_t> outputs_coll;
-   outputs_coll.reserve(gate_num);
+		uint32_t output_num, list<Node*> &collection){
+	ifstream file3;
+	file3.open(filename2.c_str());
+	bool outputs_written = false;
+	vector<uint32_t> outputs_coll;
+	outputs_coll.reserve(gate_num);
 
-   string line;
-   vector<string> tokens;
-   int32_t index; //can be negative as well
-   uint32_t num;
-   uint32_t new_node_num = 0;
+	string line;
+	vector<string> tokens;
+	int32_t index; //can be negative as well
+	uint32_t num;
+	uint32_t new_node_num = 0;
 
-   uint8_t arity;
-   uint32_t control_bit_num;
-   uint32_t input1;
-   uint32_t input2;
+	uint8_t arity;
+	uint32_t control_bit_num;
+	uint32_t input1;
+	uint32_t input2;
 
-   Node* n;
+	Node* n;
 
-    string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
-    ofstream tofile;
-    tofile.open(out_file_name.c_str(), fstream::app);
+	string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
+	ofstream tofile;
+	tofile.open(out_file_name.c_str(), fstream::app);
 
-   if(file3.is_open()){
-        while (getline(file3, line)) {
-            index = 0;
-            if (line != "") {
-                tokenize2(line, tokens);
-                num = atoi(tokens[0].c_str());
-                if(fanout[num] > 2){
-                    new_node_num = num + shift[num]; // to be changed in the node method, do not use it again!
-                    collection.push_back(new Node(num + shift[num], fanout[num], new_node_num, 0));
-                }
-                if(tokens[1] == "output"){
-                    index++;
-                    tofile << num + shift[num] << " output gate ";
-                    if(fanout[num] > 2){
-                        n = getnode(collection, num + shift[num], 0);
-                        n->remaining_fanout--;
-                    }
-                    outputs_coll.push_back(num + shift[num]);
-                }
-                else if(tokens[1] == "gate"){
-                    tofile << num + shift[num] << " gate ";
-                }
-                if(tokens[index + 1] == "gate"){
-                    num = atoi(tokens[0].c_str());
-                    tofile << "arity " << tokens[index + 3] << " table [ ";
-                    arity = atoi(tokens[index + 3].c_str());
-                    control_bit_num = arity * 2; //until arity <= 2
-                    for(uint32_t i = 0; i < control_bit_num; ++i){
-                        tofile << tokens[index + 6 + i] << " ";
-                    }
-                    tofile << "] inputs [ ";
-                    input1 = atoi(tokens[index + 9 + control_bit_num].c_str());
-                    if(fanout[input1] > 2){
-                        if(input1 < inputs){
-                            n = getnode(collection, input1, 0);
-                        }
-                        else{
-                            n = getnode(collection, input1 + shift[input1], 0);
-                        }
-                        tofile << n->get_node_with_fanout()->number << " ";
-                        n->get_node_with_fanout()->remaining_fanout--;
-                    }
-                    else{
-                        tofile << input1 + shift[input1] << " ";
-                    }
+	if(file3.is_open()){
+		while (getline(file3, line)) {
+			index = 0;
+			if (line != "") {
+				tokenize2(line, tokens);
+				num = atoi(tokens[0].c_str());
+				if(fanout[num] > 2){
+					new_node_num = num + shift[num]; // to be changed in the node method, do not use it again!
+					collection.push_back(new Node(num + shift[num], fanout[num], new_node_num, 0));
+				}
+				if(tokens[1] == "output"){
+					index++;
+					tofile << num + shift[num] << " output gate ";
+					if(fanout[num] > 2){
+						n = getnode(collection, num + shift[num], 0);
+						n->remaining_fanout--;
+					}
+					outputs_coll.push_back(num + shift[num]);
+				}
+				else if(tokens[1] == "gate"){
+					tofile << num + shift[num] << " gate ";
+				}
+				if(tokens[index + 1] == "gate"){
+					num = atoi(tokens[0].c_str());
+					bool isop=false;
+					if(tokens[index+4]=="operator")
+						isop=true;
+					if(!isop)
+						tofile << "arity " << tokens[index + 3] << " table [ ";
+					else
+						tofile << "arity " << tokens[index+3] << " operator ";
+					arity = atoi(tokens[index + 3].c_str());
+					if(isop)
+					{
+						tofile << tokens[index+5];
+						if(tokens[index+5]=="L")
+						{
+							for(int i=6; i<=9; i++)
+								tofile << " " << tokens[index+i];
+							index+=4;
+						}
+						input1 = atoi(tokens[index+8].c_str());
+						input2 = atoi(tokens[index+9].c_str());
+						tofile<<" inputs [ ";
+					}
+					else
+					{
+						control_bit_num = arity * 2; //until arity <= 2
+						for(uint32_t i = 0; i < control_bit_num; ++i){
+							tofile << tokens[index + 6 + i] << " ";
+						}
+						tofile << "] inputs [ ";
+						input1 = atoi(tokens[index + 9 + control_bit_num].c_str());
+					}
+					if(fanout[input1] > 2){
+						if(input1 < inputs){
+							n = getnode(collection, input1, 0);
+						}
+						else{
+							n = getnode(collection, input1 + shift[input1], 0);
+						}
+						tofile << n->get_node_with_fanout()->number << " ";
+						n->get_node_with_fanout()->remaining_fanout--;
+					}
+					else{
+						tofile << input1 + shift[input1] << " ";
+					}
 
-                    if(arity == 2){
-                        input2 = atoi(tokens[index + 10 + control_bit_num].c_str());
-                        if(fanout[input2] > 2){
-                            if(input2 < inputs){
-                                n = getnode(collection, input2, 0);
-                            }
-                            else{
-                                n = getnode(collection, input2 + shift[input2], 0);
-                            }
-                            tofile << n->get_node_with_fanout()->number << " ";
-                            n->get_node_with_fanout()->remaining_fanout--;
-                        }
-                        else{
-                            tofile << input2 + shift[input2] << " ";
-                        }
-                    }
-                    tofile << "]" << endl;
-                    if(fanout[num] > 2){
-                        for(uint32_t i = 0; i < fanout[num] - 2; ++i){
-                            tofile << num + shift[num] + i + 1 << " gate arity 1 table [ 0 1 ] inputs [ " << getnode(collection, num + shift[num], i + 1)->number << "]" << endl;
-                        }
-                    }
-                }
-                else if(tokens[0] == "outputs"){
-                    tofile << "outputs ";
-                    for(uint32_t i = 0; i < output_num; ++i){
-                        num = atoi(tokens[1 + i].c_str());
-                        tofile << num + shift[num] << " " ;
-                    }
-                    outputs_written = true;
-                }
-            }
-        }
-        file3.close();
-    }
+					if(arity == 2){
+						if(!isop) input2 = atoi(tokens[index + 10 + control_bit_num].c_str());
+						if(fanout[input2] > 2){
+							if(input2 < inputs){
+								n = getnode(collection, input2, 0);
+							}
+							else{
+								n = getnode(collection, input2 + shift[input2], 0);
+							}
+							tofile << n->get_node_with_fanout()->number << " ";
+							n->get_node_with_fanout()->remaining_fanout--;
+						}
+						else{
+							tofile << input2 + shift[input2] << " ";
+						}
+					}
+					tofile << "]" << endl;
+					if(fanout[num] > 2){
+						for(uint32_t i = 0; i < fanout[num] - 2; ++i){
+							tofile << num + shift[num] + i + 1 << " gate arity 1 table [ 0 1 ] inputs [ " << getnode(collection, num + shift[num], i + 1)->number << "]" << endl;
+						}
+					}
+				}
+				else if(tokens[0] == "outputs"){
+					tofile << "outputs ";
+					for(uint32_t i = 0; i < output_num; ++i){
+						num = atoi(tokens[1 + i].c_str());
+						tofile << num + shift[num] << " " ;
+					}
+					outputs_written = true;
+				}
+			}
+		}
+		file3.close();
+	}
 
-    if(!outputs_written){
-        tofile << "outputs ";
-        for(uint16_t i = 0; i < outputs_coll.size(); ++i){
-            tofile << outputs_coll[i] << " ";
-        }
-    }
-    outputs_coll.clear();
-    for(list<Node*>::iterator it = collection.begin(); it != collection.end(); ++it){
-        delete (*it);
-    }
-    collection.clear();
+	if(!outputs_written){
+		tofile << "outputs ";
+		for(uint16_t i = 0; i < outputs_coll.size(); ++i){
+			tofile << outputs_coll[i] << " ";
+		}
+	}
+	outputs_coll.clear();
+	for(list<Node*>::iterator it = collection.begin(); it != collection.end(); ++it){
+		delete (*it);
+	}
+	collection.clear();
 
 }
 
@@ -424,39 +471,39 @@ void all_nodes(string filename2, uint32_t gate_num, vector<uint32_t> fanout, vec
  * @param filename2 filename of the original SHDL file
  */
 void SHDL_to_SHDL(string filename2){
-    list<Node*> collection;
-    string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
-    const char* out_file = out_file_name.c_str();
+	list<Node*> collection;
+	string out_file_name = filename2 + SHDL_MOD_CIRCUIT_FILE_FORMAT;
+	const char* out_file = out_file_name.c_str();
 
-    uint32_t gate_num = 0;
-    uint32_t inputs = 0;
+	uint32_t gate_num = 0;
+	uint32_t inputs = 0;
 
-    // Count the lines of the file, that will be the number of gates excluding the output gate
-    count_gate_num(filename2, gate_num);
+	// Count the lines of the file, that will be the number of gates excluding the output gate
+	count_gate_num(filename2, gate_num);
 
-    // Fanout of input or gate of each line, first set to 0
-    vector<uint32_t> fanout(gate_num, 0);
-    uint32_t output_num = 0;
-    set_fanout(filename2, fanout, output_num, inputs);
-    cout << "1. Fanout setting is done" << endl;
+	// Fanout of input or gate of each line, first set to 0
+	vector<uint32_t> fanout(gate_num, 0);
+	uint32_t output_num = 0;
+	set_fanout(filename2, fanout, output_num, inputs);
+	cout << "1. Fanout setting is done" << endl;
 
-   /* the shift of each input or gate, first set to 0 */
-   vector<uint32_t> shift(gate_num, 0);
-   /* Setting the shift of each node --> separate it for input and other? */
-   set_shift(shift, fanout, inputs);
-   cout << "2. Shift setting is done" << endl;
+	/* the shift of each input or gate, first set to 0 */
+	vector<uint32_t> shift(gate_num, 0);
+	/* Setting the shift of each node --> separate it for input and other? */
+	set_shift(shift, fanout, inputs);
+	cout << "2. Shift setting is done" << endl;
 
-   /* Ouput SHDL file */
-   cout << "3. Output SHDL file created: " << out_file << endl;
+	/* Ouput SHDL file */
+	cout << "3. Output SHDL file created: " << out_file << endl;
 
-   /* Part dealing with input nodes */
-   identify_problem_inputs(filename2, fanout, inputs, gate_num, collection);
-   cout << "4. Problematic inputs identified" << endl;
+	/* Part dealing with input nodes */
+	identify_problem_inputs(filename2, fanout, inputs, gate_num, collection);
+	cout << "4. Problematic inputs identified" << endl;
 
-   /* Part dealing with the rest of the nodes */
-   cout << "5. All other nodes done" << endl;
-   all_nodes(filename2, gate_num, fanout, shift, inputs, output_num, collection);
+	/* Part dealing with the rest of the nodes */
+	cout << "5. All other nodes done" << endl;
+	all_nodes(filename2, gate_num, fanout, shift, inputs, output_num, collection);
 
-   fanout.clear();
-   shift.clear();
+	fanout.clear();
+	shift.clear();
 }

@@ -134,7 +134,6 @@ int main(int argc, char *argv[]) {
 
   if (version == -2) {
     Valiant_DAG* G = embedding_merged(gg, input, output);
-
 #ifdef TIME
     clock_t time2 = getMilliSecs();
     cout << "Embedding time: " << (time2 - start) << "ms" << endl;
@@ -149,17 +148,21 @@ int main(int argc, char *argv[]) {
   } else {
     auto n = gg->node_number;
     std::vector<uint64_t> hybrid_choice;
-    
+    cout<<"hybriding"<<endl;
     if (hybrid) {
       Dynamic_Hybrid(hybrid_choice, n, zhao);
     }
+	cout<<"hybrid done"<<endl;
     auto *uc = new ValiantUC(n, version, zhao, hybrid_choice);
     bool fourWay = version == 4;
     if (hybrid) {
       fourWay = nextK(n, hybrid_choice) == 4;
     }
+	cout<<"hybrid choice"<<endl;
     gg->create_subgraphs(2 * n, true, fourWay, hybrid, hybrid_choice);
+	cout<<"subgraph created"<<endl;
     gg->check_correct_subgraphs();
+	cout<<"subgraph checked"<<endl;
 #ifdef DEBUG_GRAPH
     print_gamma2_full(gg);
     print_gamma_tree(gg, true, true);
@@ -178,11 +181,12 @@ int main(int argc, char *argv[]) {
       cout << "Block Edge-Embedding failed!" << endl;
     }
     if (validate_recursion_point_edge_embedding(uc, gg, abs(version), hybrid_choice)) {
-      cout << "Edge-Embedding passed!" << endl;
+      cout << "Edge-Embedding passed! Yes!" << endl;
     } else {
       cout << "Edge-Embedding failed!" << endl;
     }
 #endif // DEBUG_CORRECTNESS
+	cout<<"End of Debug_Correntness"<<endl;
   }
 
   cout << "END UC" << endl;
@@ -228,7 +232,7 @@ int main(int argc, char *argv[]) {
   }
 
 #endif // DEBUG_CORRECTNESS
-
+	cout<<"End of Program"<<endl;
   return 0;
 
 }

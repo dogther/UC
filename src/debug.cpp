@@ -72,9 +72,17 @@ bool validate_block_edge_embedding(ValiantEUG* eug, int eugNumber, string path) 
 bool validate_recursion_point_edge_embedding (ValiantUC *uc, DAG_Gamma2 *gg, int k, std::vector<uint64_t>& hybrid_choice) {
   ValiantEUG* eugs[] = {uc->left(), uc->right()};
   DAG_Gamma1* graphs[] = {gg->gamma1_left, gg->gamma1_right};
+#ifdef STATE
+  cout<<"recursion check:"<<k<<endl;
+  cout<<graphs[0]<<","<<graphs[1]<<endl;
+  cout<<eugs[0]<<","<<eugs[1]<<endl;
+#endif
   if (k == 0) {
     k = nextK(gg->node_number, hybrid_choice);
   }
+#ifdef STATE
+  cout<<"recursioning "<<k<<endl;
+#endif
   for (int i = 0; i < 2; i++) {
     if(!validate_recursion_point_edge_embedding(graphs[i], eugs[i], i, k)) {
       return false;
@@ -93,26 +101,37 @@ bool validate_recursion_point_edge_embedding (ValiantUC *uc, DAG_Gamma2 *gg, int
  */
  bool validate_recursion_point_edge_embedding (DAG_Gamma1 *graph, ValiantEUG *uc, int eugNum, int k) {
   int wrongCounter = 0;
+ #ifdef STATE
+	cout<<"Checking 2:"<<graph->node_number<<endl;
+#endif
   for (int i = 0; i < graph->node_number; i++) {
     DAG_Gamma1::Node *currentNode = graph->node_array[i];
     int id = currentNode->number;
 
     DAG_Gamma1::Node *destNode = currentNode->child;
     if (!destNode) continue;
+	#ifdef STATE
+	cout<<currentNode<<","<<k<<endl;
+#endif
     int destId = destNode->number;
     int destBlock = (int) floor(float((destId - 1) / k));
     int destBlockPosition = (destId - 1) % k;
 
     UCNode *lastNode = uc->getBlocks()[destBlock]->getPoles()[destBlockPosition];
     UCNode *nextNode = lastNode->getParents()[eugNum];
+	#ifdef STATE
+	cout<<lastNode<<","<<nextNode<<endl;
+#endif
     nextNode = find_next_pole(lastNode, nextNode);
     int calculatedStartId = nextNode->getID();
     if(calculatedStartId != id) {
       std::cout << "should be " << id << " -> " << destId << "\tbut is: " << calculatedStartId << " -> " << destId << std::endl;
       wrongCounter++;
-    } //else {
-      //std::cout << id << " -> " << destId << " correct" << std::endl;
-    //}
+    } else {
+#ifdef STATE
+      std::cout << id << " -> " << destId << " correct" << std::endl;
+#endif
+    }
   }
   if (wrongCounter == 0) {
     return true;
