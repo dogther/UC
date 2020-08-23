@@ -13,14 +13,17 @@ the output is in output/circuits. See README\_booleanUC.md (the original README 
 
 The grammar for the newly supported universal arithmetic gate is:
 ```
-operator L p\_1 p\_2 p\_3 p\_4
+operator L p1 p2 p3 p4
 ```
-(in replace of `table [...]` in the original SHDL file.)
+(in replace of `table [...]` in the original SHDL file.) For example, an addition gate can be:
+```
+3 gate arity 2 operator L 0 1 1 0 inputs [ 0 1 ]
+```
 
 ### MPC translator Usage
 In checker/, run
 ```
-./UC\_to\_circuit <input> <output>
+./UC_to_circuit <input> <output>
 ```
 The generated output can be directly used as the input circuit to our MPC protocol. (The circuit format is the same as libscapi circuits.) The generated programming code file (in the last step) can be directly used as input file (after adding inputs in the front of it).
 
